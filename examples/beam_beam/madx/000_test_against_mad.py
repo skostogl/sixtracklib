@@ -4,16 +4,16 @@ from scipy.constants import m_p, c
 
 intensity_pbun = 1e11
 energy_GeV = 7000.
-nemittx = 2.5e-6
+nemittx = 1.5e-6
 nemitty = 2.5e-6
 
 tune_x = 0.31
-tune_y = 0.31
+tune_y = 0.32
 beta_s = 0.40
 
 nturns  = 1024
 
-include_beambeam = False
+include_beambeam = True
 offsetx_s = 0.
 offsety_s = 0.
 
@@ -35,7 +35,8 @@ mp_GeV = m_p*c**2/qe/1e9
 gamma = energy_GeV/mp_GeV
 
 sigmax_s = np.sqrt(beta_s*nemittx/gamma)
-sigmay_s = np.sqrt(beta_s*nemittx/gamma)
+sigmay_s = np.sqrt(beta_s*nemitty/gamma)
+
 
 x0_particles = []
 px0_particles = []
@@ -98,6 +99,7 @@ if include_beambeam:
     block.BB4D(N_s = intensity_pbun, beta_s = beta_s, q_s = qe, 
               transv_field_data = {'type':'gauss_round',  'sigma': (sigmax_s+sigmay_s)/2., 'Delta_x': offsetx_s, 'Delta_y': offsety_s})             
   else:
+    print "elliptic beam"
     block.BB4D(N_s = intensity_pbun, beta_s = beta_s, q_s = qe, transv_field_data = {'type':'gauss_ellip',  'sigma_x': sigmax_s, 'sigma_y': sigmay_s, 'Delta_x': offsetx_s, 'Delta_y': offsety_s})             
 
 block.Block() 
@@ -117,8 +119,8 @@ for i in xrange(nturns):
   if i%100 == 0:
     print 'turn, ',i
   track_fun(beam)
-x_particles_stlb = np.array(x_particles_stlb)
-y_particles_stlb = np.array(y_particles_stlb)
+x_particles_stlb = np.array(x_particles_stlb).T
+y_particles_stlb = np.array(y_particles_stlb).T
   
 ### Tracking MAD
 import track_mad as tm
@@ -146,7 +148,7 @@ import pylab as pl
 pl.close('all')
 pl.figure(1)
 pl.plot(tunes_x_mad, tunes_y_mad, '.r')
-pl.plot(tunes_x_stlb, tunes_x_stlb, 'xb')
+pl.plot(tunes_x_stlb, tunes_y_stlb, 'xb')
 #~ pl.plot([.3, .33], [.3, .33], 'k')
 pl.axis('equal')
 pl.grid('on')
