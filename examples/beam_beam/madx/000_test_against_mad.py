@@ -4,8 +4,8 @@ from scipy.constants import m_p, c
 
 intensity_pbun = 1e11
 energy_GeV = 7000.
-nemittx = 1.5e-6
-nemitty = 2.5e-6
+nemittx = 2.5e-6
+nemitty = 1.5e-6
 
 tune_x = 0.31
 tune_y = 0.32
