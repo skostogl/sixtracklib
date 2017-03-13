@@ -7,6 +7,8 @@ def track_mad_linmap_and_beambeam(intensity_pbun, energy_GeV, nemittx, nemitty, 
     
     x_particles = []
     y_particles = []
+    px_particles = []
+    py_particles = []
     
     for i_part, (x_part, px_part, y_part, py_part) in enumerate(zip(x0_particles, px0_particles, y0_particles, py0_particles)):
         #~ print i_part
@@ -68,7 +70,11 @@ def track_mad_linmap_and_beambeam(intensity_pbun, energy_GeV, nemittx, nemitty, 
         
         x_particles.append(ob.X.copy())
         y_particles.append(ob.Y.copy())
-    return np.array(x_particles), np.array(y_particles)
+        
+        px_particles.append(ob.PX.copy())
+        py_particles.append(ob.PY.copy())
+        
+    return np.array(x_particles), np.array(y_particles), np.array(px_particles), np.array(py_particles)
         
         
     
