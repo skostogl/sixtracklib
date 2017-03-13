@@ -19,7 +19,7 @@ try:
   queue = cl.CommandQueue(ctx)
   mf = cl.mem_flags
   rw=mf.READ_WRITE | mf.COPY_HOST_PTR
-except ImportError:
+except Exception:
   print("Warning: error import OpenCL: track_cl not available")
   cl=None
   pass
