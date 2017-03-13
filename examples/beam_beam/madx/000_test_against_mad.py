@@ -14,8 +14,10 @@ py_part = 0.
 nturns  = 1024
 
 include_beambeam = True
-
-
+offsetx_s = 0.
+offsety_s = 0.
+sigmax_s = 1e-5
+sigmay_s = 1e-5
 
 with open('mad_auto.madx', 'w') as fmad:
   fmad.write("beam, particle=proton, npart = %.2fe11, energy=%.2f, exn=%e, eyn=%e;\n\n"%(intensity_pbun/1e11, energy_GeV, nemittx, nemitty))
@@ -31,15 +33,25 @@ one_turn: matrix,
 ;
 
 linmap:   line=(one_turn);
-""")
 
- #Insert beam beam here
+""")
+  myring_string = 'linmap'
+
+
+  # Insert beam beam
+  if include_beambeam:
+    fmad.write("beam_beam: beambeam, charge=1, xma=%e, yma=%e, sigx=%e, sigy=%e;"%(offsetx_s, offsety_s, sigmax_s, sigmay_s))
+    myring_string += ', beam_beam'
+ 
+ 
+ 
+  # Finalize and track
   fmad.write("""
-myring: line=(linmap);
+myring: line=(%s);
 use,period=myring;
 
 
-""")
+"""%myring_string)
   
   #Track
   fmad.write("track, dump;\n")
@@ -47,9 +59,19 @@ use,period=myring;
   
   fmad.write("run,turns=%d;\nendtrack;\n"%nturns)
 
+mad_executable = 'madx'
+
+import os
+try:
+  os.remove('track.obs0001.p0001')
+except OSError as err:
+  print err
+  
+import subprocess as sp
+sp.call((mad_executable,  'mad_auto.madx'))
+
 
 import metaclass 
-
 ob = metaclass.twiss('track.obs0001.p0001')
 
 import harmonic_analysis as ha
