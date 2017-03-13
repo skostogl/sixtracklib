@@ -5,7 +5,7 @@ from scipy.constants import m_p, c
 intensity_pbun = 1e11
 energy_GeV = 7000.
 nemittx = 2.5e-6
-nemitty = 1.5e-6
+nemitty = 1.e-6
 
 tune_x = 0.31
 tune_y = 0.32
@@ -147,9 +147,11 @@ tunes_y_mad = extract_tune(y_particles_mad)
 import pylab as pl
 pl.close('all')
 pl.figure(1)
-pl.plot(tunes_x_mad, tunes_y_mad, '.r')
-pl.plot(tunes_x_stlb, tunes_y_stlb, 'xb')
+pl.plot(tunes_x_mad, tunes_y_mad, '.r', label='mad')
+pl.plot(tunes_x_stlb, tunes_y_stlb, 'xb', label='sixtracklib')
+pl.suptitle('sigmax = %.2e sigmay = %.2e'%(sigmax_s, sigmay_s))
 #~ pl.plot([.3, .33], [.3, .33], 'k')
 pl.axis('equal')
 pl.grid('on')
+pl.legend(loc='best')
 pl.show()
