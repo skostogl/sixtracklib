@@ -1,80 +1,153 @@
+import numpy as np
+from scipy.constants import e as qe
+from scipy.constants import m_p, c
+
 intensity_pbun = 1e11
 energy_GeV = 7000.
-nemittx = 2e-6
+nemittx = 2.5e-6
 nemitty = 2.5e-6
 
 tune_x = 0.31
-tune_y = 0.32
+tune_y = 0.31
 beta_s = 0.40
 
-x_part = 1.
-px_part = 0.
-y_part = 2.
-py_part = 0.
 nturns  = 1024
 
-include_beambeam = True
+include_beambeam = False
 offsetx_s = 0.
 offsety_s = 0.
-sigmax_s = 1e-5
-sigmay_s = 1e-5
 
-with open('mad_auto.madx', 'w') as fmad:
-  fmad.write("beam, particle=proton, npart = %.2fe11, energy=%.2f, exn=%e, eyn=%e;\n\n"%(intensity_pbun/1e11, energy_GeV, nemittx, nemitty))
-  fmad.write("tune_x = %.4f;\ntune_y =  %.4f;\nbeta_s = %.4f;\n"%(tune_x, tune_y, beta_s))
+
+n_sigma_footprint = 7
+n_theta_footprint = 7
+
+i_sigma_vect = np.arange(0.01, n_sigma_footprint+0.1)
+theta_vect = np.linspace(0+np.pi/900, n_theta_footprint-np.pi/900, n_theta_footprint)
+
+# set initial conditions
+x0_particles = []
+px0_particles = []
+y0_particles = []
+py0_particles = []
+
+
+mp_GeV = m_p*c**2/qe/1e9
+gamma = energy_GeV/mp_GeV
+
+sigmax_s = np.sqrt(beta_s*nemittx/gamma)
+sigmay_s = np.sqrt(beta_s*nemittx/gamma)
+
+x0_particles = []
+px0_particles = []
+y0_particles = []
+py0_particles = []
+
+for i_sigma in i_sigma_vect:
+  for theta in theta_vect:
+    x0_particles.append(i_sigma*sigmax_s*np.cos(theta))
+    y0_particles.append(i_sigma*sigmay_s*np.sin(theta))
+    
+    px0_particles.append(0.)
+    py0_particles.append(0.)  
+    
+
+import sys, os
+BIN = os.path.expanduser("../../../")
+sys.path.append(BIN)
+import sixtracklib
+
+
+### Build beam
+beam=sixtracklib.cBeam(npart=len(x0_particles))
+for ii in xrange(len(beam.particles)):
+  beam.particles[ii]['partid'] = ii
+  beam.particles[ii]['elemid'] = 0
+  beam.particles[ii]['turn'] = 0
+  beam.particles[ii]['state'] = 0
+  beam.particles[ii]['s'] = 0
+  beam.particles[ii]['x'] = x0_particles[ii]
+  beam.particles[ii]['px'] = px0_particles[ii]
+  beam.particles[ii]['y'] = y0_particles[ii]
+  beam.particles[ii]['py'] = py0_particles[ii]
+  beam.particles[ii]['sigma'] = 0.
+  beam.particles[ii]['psigma'] = 0.
+  beam.particles[ii]['chi'] = 1.
+  beam.particles[ii]['delta'] = 0.
+  beam.particles[ii]['rpp'] = 1.
+  beam.particles[ii]['rvv'] = 1.
+  beam.particles[ii]['beta'] = 1.
+  beam.particles[ii]['gamma'] = gamma
+  beam.particles[ii]['mass0'] = m_p*c**2/qe
+  beam.particles[ii]['charge0'] = qe
+  beam.particles[ii]['beta0'] = 1.
+  beam.particles[ii]['gamma0'] = gamma
+  beam.particles[ii]['p0c'] = energy_GeV*1e9
   
-  fmad.write("""
-one_turn: matrix, 
-  rm11= cos(2*pi*tune_x),        rm12=sin(2*pi*tune_x)*beta_s,
-  rm21=-sin(2*pi*tune_x)/beta_s, rm22=cos(2*pi*tune_x),
-  rm33= cos(2*pi*tune_y),        rm34=sin(2*pi*tune_y)*beta_s,
-  rm43=-sin(2*pi*tune_y)/beta_s, rm44=cos(2*pi*tune_y)  
+###  Build the ring
+block=sixtracklib.cBlock(size=50)
+#block.Multipole(bal=np.array([1.,2.,3.,4.,5.,6.]),l=0,hx=0,hy=0)
+block.LinMap(alpha_x_s0=0., beta_x_s0=beta_s, D_x_s0=0., 
+             alpha_x_s1=0., beta_x_s1=beta_s, D_x_s1=0.,
+             alpha_y_s0=0., beta_y_s0=beta_s, D_y_s0=0.,
+             alpha_y_s1=0., beta_y_s1=beta_s, D_y_s1=0.,
+             dQ_x=tune_x, dQ_y=tune_y)
+             
+if include_beambeam:
+  if np.abs((sigmax_s-sigmay_s)/((sigmax_s+sigmay_s)/2.))<1e-3:
+    print "round beam"
+    block.BB4D(N_s = intensity_pbun, beta_s = beta_s, q_s = qe, 
+              transv_field_data = {'type':'gauss_round',  'sigma': (sigmax_s+sigmay_s)/2., 'Delta_x': offsetx_s, 'Delta_y': offsety_s})             
+  else:
+    block.BB4D(N_s = intensity_pbun, beta_s = beta_s, q_s = qe, transv_field_data = {'type':'gauss_ellip',  'sigma_x': sigmax_s, 'sigma_y': sigmay_s, 'Delta_x': offsetx_s, 'Delta_y': offsety_s})             
 
-;
-
-linmap:   line=(one_turn);
-
-""")
-  myring_string = 'linmap'
-
-
-  # Insert beam beam
-  if include_beambeam:
-    fmad.write("beam_beam: beambeam, charge=1, xma=%e, yma=%e, sigx=%e, sigy=%e;"%(offsetx_s, offsety_s, sigmax_s, sigmay_s))
-    myring_string += ', beam_beam'
- 
- 
- 
-  # Finalize and track
-  fmad.write("""
-myring: line=(%s);
-use,period=myring;
+block.Block() 
 
 
-"""%myring_string)
+### Tracking stlb
+track_fun =  block.track
+# test OPENCL:
+# track_fun =  block.track_cl
+
+
+x_particles_stlb = []
+y_particles_stlb = []
+for i in xrange(nturns):
+  x_particles_stlb.append(beam.particles['x'].copy())
+  y_particles_stlb.append(beam.particles['y'].copy())
+  if i%100 == 0:
+    print 'turn, ',i
+  track_fun(beam)
+x_particles_stlb = np.array(x_particles_stlb)
+y_particles_stlb = np.array(y_particles_stlb)
   
-  #Track
-  fmad.write("track, dump;\n")
-  fmad.write("start, x= %e, px=%e, y=%e, py=%e;\n"%(x_part, px_part, y_part, py_part))
-  
-  fmad.write("run,turns=%d;\nendtrack;\n"%nturns)
+### Tracking MAD
+import track_mad as tm
+x_particles_mad, y_particles_mad = tm.track_mad_linmap_and_beambeam(intensity_pbun, energy_GeV, nemittx, nemitty, 
+                    tune_x, tune_y, beta_s, include_beambeam, offsetx_s, offsety_s, sigmax_s, sigmay_s, 
+                    x0_particles, px0_particles, y0_particles, py0_particles, nturns)
+                    
 
-mad_executable = 'madx'
-
-import os
-try:
-  os.remove('track.obs0001.p0001')
-except OSError as err:
-  print err
-  
-import subprocess as sp
-sp.call((mad_executable,  'mad_auto.madx'))
-
-
-import metaclass 
-ob = metaclass.twiss('track.obs0001.p0001')
-
+### Tune analysis
 import harmonic_analysis as ha
-extract_tune = lambda signal: ha.HarmonicAnalysis(signal).laskar_method(num_harmonics=1)[0][0]
+def extract_tune(signals): 
+    n_signals = signals.shape[0]
+    tune_list = []
+    for i_signal in xrange(n_signals):
+      tune_list.append(ha.HarmonicAnalysis(signals[i_signal, :]).laskar_method(num_harmonics=1)[0][0])
+    return np.array(tune_list)
 
-tune  = extract_tune(ob.X)
+tunes_x_stlb = extract_tune(x_particles_stlb)
+tunes_y_stlb = extract_tune(y_particles_stlb)
+
+tunes_x_mad = extract_tune(x_particles_mad)
+tunes_y_mad = extract_tune(y_particles_mad)
+
+import pylab as pl
+pl.close('all')
+pl.figure(1)
+pl.plot(tunes_x_mad, tunes_y_mad, '.r')
+pl.plot(tunes_x_stlb, tunes_x_stlb, 'xb')
+#~ pl.plot([.3, .33], [.3, .33], 'k')
+pl.axis('equal')
+pl.grid('on')
+pl.show()
