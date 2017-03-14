@@ -132,5 +132,4 @@ pl.gca().ticklabel_format(style='sci', scilimits=(0,0),axis='y')
 pl.suptitle('theta = %.1f deg'%(theta_obs*90/(np.pi/2)))
 pl.grid('on')
 pl.show()
-
-wurst
+s
