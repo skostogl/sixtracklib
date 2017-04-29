@@ -11,7 +11,7 @@ one_turn: matrix,
 ;
 !value, one_turn->rm11, one_turn->rm12, one_turn->rm21, one_turn->rm22;
 
-beam_beam: beambeam, charge=1, xma=0, yma=0, sigx=1e-5, sigy=1e-5;
+beam_beam: beambeam, charge=1, xma=0, yma=0, sigx=1.1577515656772496e-05, sigy=1.1577515656772496e-05;
 
 ring:   line=(one_turn);
 ringbb: line=(one_turn, beam_beam);
