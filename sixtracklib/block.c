@@ -43,54 +43,54 @@ int track_single(CLGLOBAL value_t *data,
                  uint64_t elemid,
                  uint64_t npart,
                  uint64_t elembyelemoff, uint64_t turnbyturnoff) {
-   //CLGLOBAL Particle* p = &particles[i_part];
+   
+   enum type_t typeid = get_type(data, elemid);
+   CLGLOBAL value_t *elem = data+elemid+1; //Data starts after typeid
    // for each particle ...
    for (uint64_t i_part=0; i_part < npart; i_part++) {
      Particle *p = &particles[i_part];
-     CLGLOBAL value_t *elem;
-     if (p->state >= 0 ) {
-         // diagnostics, will be always 0 if diagnostics disabled in Block_track
-         if (turnbyturnoff>0) {
-           uint64_t dataoff=turnbyturnoff+sizeof(Particle)/8 * i_part;
-           for (int i_attr=0;i_attr<sizeof(Particle)/8;i_attr++) {
-              data[dataoff + i_attr] =
-                   ((value_t *) p)[i_attr];
-           }
-         };
-         enum type_t typeid = get_type(data, elemid);
-         elem=data+elemid+1; //Data starts after typeid
-  //       _DP("Block_track: elemid=%zu typedid=%u\n",elemid,typeid);
-         switch (typeid) {
-           // 50%
-             case DriftID:
-                  Drift_track(p, (CLGLOBAL Drift*) elem);
-             break;
-             // 30%
-             case MultipoleID:
-                  Multipole_track(p, (CLGLOBAL Multipole*) elem);
-             break;
-             // 0.1%
-             case CavityID:
-                  Cavity_track(p, (CLGLOBAL Cavity*) elem);
-             break;
-             // 0 - 50%
-             case AlignID:
-                  Align_track(p, (CLGLOBAL Align*) elem);
-             break;
-             case IntegerID: break;
-             case DoubleID: break;
-             case BlockID: break;
-             case DriftExactID:
-                  DriftExact_track(p, (CLGLOBAL DriftExact*) elem);
-             break;
+     if (p->state == 0 ) {
+       continue;
+     }
+       // diagnostics, will be always 0 if diagnostics disabled in Block_track
+       if (turnbyturnoff>0) {
+         uint64_t dataoff=turnbyturnoff+sizeof(Particle)/8 * i_part;
+         for (int i_attr=0;i_attr<sizeof(Particle)/8;i_attr++) {
+            data[dataoff + i_attr] =
+                 ((value_t *) p)[i_attr];
          }
-         // diagnostics, will be always 0 if diagnostics disabled in Block_track
-         if (elembyelemoff>0){
-           uint64_t dataoff=elembyelemoff+sizeof(Particle)/8 * i_part;
-           for (int i_attr=0;i_attr<sizeof(Particle)/8;i_attr++) {
-              data[dataoff + i_attr] =
-                   ((value_t *) p)[i_attr];
-           }
+       };
+//       _DP("Block_track: elemid=%zu typedid=%u\n",elemid,typeid);
+       switch (typeid) {
+         // 50%
+           case DriftID:
+                Drift_track(p, (CLGLOBAL Drift*) elem);
+           break;
+           // 30%
+           case MultipoleID:
+                Multipole_track(p, (CLGLOBAL Multipole*) elem);
+           break;
+           // 0.1%
+           case CavityID:
+                Cavity_track(p, (CLGLOBAL Cavity*) elem);
+           break;
+           // 0 - 50%
+           case AlignID:
+                Align_track(p, (CLGLOBAL Align*) elem);
+           break;
+           case IntegerID: break;
+           case DoubleID: break;
+           case BlockID: break;
+           case DriftExactID:
+                DriftExact_track(p, (CLGLOBAL DriftExact*) elem);
+           break;
+       }
+       // diagnostics, will be always 0 if diagnostics disabled in Block_track
+       if (elembyelemoff>0){
+         uint64_t dataoff=elembyelemoff+sizeof(Particle)/8 * i_part;
+         for (int i_attr=0;i_attr<sizeof(Particle)/8;i_attr++) {
+            data[dataoff + i_attr] =
+                 ((value_t *) p)[i_attr];
          }
        }
      }
