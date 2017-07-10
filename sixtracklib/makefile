@@ -1,8 +1,10 @@
-CFLAGS= -O1 -fPIC
-CFLAGS= -g -fPIC -Wall -Werror
-CFLAGS= -std=c99 -g -O3 -fPIC -msse -Wall -Werror
-CC=gcc
-LIBS=-lm
+#CFLAGS= -O1 -fPIC
+#CFLAGS= -g -fPIC -Wall -Werror
+#CFLAGS= -std=c99 -g -O3 -fPIC -msse -Wall -Werror
+CFLAGS= -qopt-report=5 -std=c99 -g -O3 -fPIC -xAVX2 -qopenmp -Wall -Werror
+CC=icc
+#LIBS=-lm
+LIBS=-qopenmp
 
 
 all: lib
@@ -17,4 +19,4 @@ block.so: block.o
 	$(CC)  -shared $(LIBS) -o $@ $^
 
 clean:
-	-rm block.so block.so block.o
+	-rm block.so block.o
