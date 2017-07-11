@@ -5,8 +5,8 @@ import sixtracktools
 import sixtracklib
 
 
-six =sixtracktools.SixTrackInput('.')
-line,rest,iconv=six.expand_struct()
+six = sixtracktools.SixTrackInput('.')
+line, rest, iconv = six.expand_struct()
 names,types,args=zip(*line)
 idx=dict( (nn,ii) for ii,nn in enumerate(six.struct) if not 'BLOC' in nn)
 names2=np.array(names)[iconv]
@@ -23,19 +23,23 @@ import sys
 
 def mkbench(npart,nturn):
   block=sixtracklib.cBlock.from_line(line)
-  npart2=npart
-  cbeam=bref.copy().reshape(-1)[:npart2]
-  st=time.time()
-  block.track(cbeam,nturn=nturn,turnbyturn=True)
-  st=time.time()-st
-  perfcpu=st/npart2/nturn*1e6
-  print("CPU part %4d, turn %4d: %10.3f usec/part*turn"%(npart2,nturn,perfcpu))
+  cbeam=bref.copy().reshape(-1)[:npart]
+  beg=time.time()
+  #block.track(cbeam,nturn=nturn,turnbyturn=True)
+  # desiable some diagnostics
+  block.track(cbeam,nturn=nturn)
+  end=time.time()
+  perfcpu=((end - beg)/(npart*nturn))*1e6
+  print("CPU part %4d, turn %4d: %10.3f usec/part*turn (total time: %10.3f s)"%(
+    npart,nturn,perfcpu, end - beg))
 
-  return st,npart,nturn,perfcpu
+  return end-beg,npart,nturn,perfcpu
 
-out=open(time.strftime("bench_%Y%M%dT%H%m%S.txt"),'w')
-for npart in [100,1000,2000,5000,10000,20000]:
-    for nturn in [1,2,5,10]:
+out=open(time.strftime("bench_%Y%m%dT%H%m%S.txt"),'w')
+#for npart in [100000,200000,500000,1000000]:
+for npart in [1000, 2000, 5000, 10000]:
+    #for nturn in [1,2,5,10]:
+    for nturn in [10]:
         st,npart,nturn,perfcpu=mkbench(npart,nturn)
         fmt="%5d %5d %10.3f\n"
         out.write(fmt%(npart,nturn,perfcpu))
