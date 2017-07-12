@@ -15,7 +15,10 @@
 
 #include <math.h>
 #include <stdio.h>
+
+#ifndef __APPLE__
 #define M_PI 3.14159265358979323846
+#endif
 
 #endif
 
@@ -26,7 +29,7 @@
 
 #include "track.h"
 
-inline int Drift_track(Particle* p, CLGLOBAL Drift *el){
+static inline int Drift_track(Particle* p, CLGLOBAL Drift *el){
   double xp, yp;
   double length=el->length;
   xp = p->px * p->rpp;
@@ -40,7 +43,7 @@ inline int Drift_track(Particle* p, CLGLOBAL Drift *el){
 };
 
 
-inline int DriftExact_track(Particle* p, CLGLOBAL DriftExact *el){
+static inline int DriftExact_track(Particle* p, CLGLOBAL DriftExact *el){
   double lpzi, lbzi, px, py, opd;
   double length = el->length;
   opd=1+p->delta;
@@ -54,7 +57,7 @@ inline int DriftExact_track(Particle* p, CLGLOBAL DriftExact *el){
   return 1;
 }
 
-inline int Multipole_track(Particle* p, CLGLOBAL Multipole *el){
+static inline int Multipole_track(Particle* p, CLGLOBAL Multipole *el){
   double x,y,chi,dpx,dpy,zre,zim,b1l,a1l,hxx,hyy;
   long int order=el->order;
   double hxl=el->hxl;
@@ -87,7 +90,7 @@ inline int Multipole_track(Particle* p, CLGLOBAL Multipole *el){
   return 1 ;
 }
 
-inline int Cavity_track(Particle* p, CLGLOBAL Cavity *el){
+static inline int Cavity_track(Particle* p, CLGLOBAL Cavity *el){
   double volt = el->volt;
   double freq = el->freq;
   double lag = el->lag;
@@ -107,7 +110,7 @@ inline int Cavity_track(Particle* p, CLGLOBAL Cavity *el){
   return 1;
 }
 
-inline int Align_track(Particle* p, CLGLOBAL Align *el){
+static inline int Align_track(Particle* p, CLGLOBAL Align *el){
   double xn,yn;
   double cz = el->cz;
   double sz = el->sz;
