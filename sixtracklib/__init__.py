@@ -14,4 +14,4 @@ submit itself to any jurisdiction.
 
 
 from cblock import cBlock
-from cbeam import cBeam
+from cbeam import cBeam, cBeam_SoA
