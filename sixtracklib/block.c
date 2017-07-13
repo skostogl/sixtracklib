@@ -277,7 +277,7 @@ int Block_track(value_t *data, Beam* restrict beam,
               elembyelemid, turnbyturnoff);
        }
      for (uint64_t i_part=0; i_part < npart; i_part++){
-       if (beam->particles[i_part].state >= 0) beam->particles[i_part].turn++;
+       if (beam->particles->state[i_part] >= 0) beam->particles->turn[i_part]++;
      }
    }
    return 1;

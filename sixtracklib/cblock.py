@@ -3,7 +3,7 @@
 import ctypes
 import os
 import numpy as np
-from .cbeam import cBeam, cBeam_SoA
+from .cbeam import cBeam, cBeam_SoA, cBeam_SoA_ctypes
 
 modulepath = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,8 +42,15 @@ class typeid(object):
 
 blocklibpath = os.path.join(modulepath, 'block.so')
 blocklib = ctypes.CDLL(blocklibpath)
+# blocklib.Block_track.argtypes = [ctypes.c_void_p,  # *data
+#                                   ctypes.c_void_p,  # *particles
+#                                   ctypes.c_uint64,  # blockid
+#                                   ctypes.c_uint64,  # nturn
+#                                   ctypes.c_uint64,  # elembyelemid
+#                                   ctypes.c_uint64]  # turnbyturnid
+
 blocklib.Block_track.argtypes = [ctypes.c_void_p,  # *data
-                                 ctypes.c_void_p,  # *particles
+                                 ctypes.POINTER(cBeam_SoA_ctypes),  # *beam
                                  ctypes.c_uint64,  # blockid
                                  ctypes.c_uint64,  # nturn
                                  ctypes.c_uint64,  # elembyelemid
@@ -84,6 +91,7 @@ class TurnByTurn(object):
 
 
 class cBlock(object):
+
     @classmethod
     def from_line(cls, line):
         block = cls()

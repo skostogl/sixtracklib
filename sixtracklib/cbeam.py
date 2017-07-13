@@ -68,9 +68,6 @@ class Particles(object):
         newp = Particles(len(new['partid']), pdict=new)
         return newp
 
-    # def __setitem__(self, key, val):
-    #    self.__dict__[key] = val
-
     def copy(self):
         new = Particles(self.np)
         for nn, prop, in self.__dict__.iteritems():
@@ -109,9 +106,11 @@ class cBeam_ctypes(ctypes.Structure):
     _fields_ = [("npart",     ctypes.c_uint64),
                 ("particles", ctypes.c_void_p)]
 
+
 class cBeam_SoA_ctypes(ctypes.Structure):
     _fields_ = [("npart",     ctypes.c_uint64),
                 ("particles", ctypes.POINTER(Particles_ctypes))]
+
 
 class cBeam(object):
 
@@ -284,9 +283,12 @@ class cBeam_SoA(object):
             self.npart = self.particles.np
 
     def ctypes(self):
+        # NB: added np.ascontiguousarray to ensure arrays are not fragmented
+        #     when passing into C.
         cdata = cBeam_SoA_ctypes(self.npart, ctypes.pointer(Particles_ctypes(
-            *[np.ctypeslib.as_ctypes(self.particles.__getattribute__(f))
-                for f, t in Particles_ctypes._fields_]
+            *[np.ctypeslib.as_ctypes(
+                np.ascontiguousarray(self.particles.__getattribute__(f)))
+              for f, _ in Particles_ctypes._fields_]
         )))
         return ctypes.pointer(cdata)
 
