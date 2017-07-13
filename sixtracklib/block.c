@@ -65,7 +65,7 @@ int track_single(CLGLOBAL value_t *data,
        // 50%
          case DriftID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
-                if (particles->state[i_part] > 0 ) {
+                if (particles->state[i_part] >= 0 ) {
                   Drift_track(particles, i_part, (CLGLOBAL Drift*) elem);
                 }
               }
@@ -73,7 +73,7 @@ int track_single(CLGLOBAL value_t *data,
          // 30%
          case MultipoleID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
-                if (particles->state[i_part] > 0 ) {
+                if (particles->state[i_part] >= 0 ) {
                   Multipole_track(particles, i_part, (CLGLOBAL Multipole*) elem);
                 }
               }
@@ -81,7 +81,7 @@ int track_single(CLGLOBAL value_t *data,
          // 0.1%
          case CavityID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
-                if (particles->state[i_part] > 0 ) {
+                if (particles->state[i_part] >= 0 ) {
                   Cavity_track(particles, i_part, (CLGLOBAL Cavity*) elem);
                 }
               }
@@ -89,7 +89,7 @@ int track_single(CLGLOBAL value_t *data,
          // 0 - 50%
          case AlignID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
-                if (particles->state[i_part] > 0 ) {
+                if (particles->state[i_part] >= 0 ) {
                   Align_track(particles, i_part, (CLGLOBAL Align*) elem);
                 }
               }
@@ -99,7 +99,7 @@ int track_single(CLGLOBAL value_t *data,
          case BlockID: break;
          case DriftExactID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
-                if (particles->state[i_part] > 0 ) {
+                if (particles->state[i_part] >= 0 ) {
                   DriftExact_track(particles, i_part, (CLGLOBAL DriftExact*) elem);
                 }
               }
@@ -145,7 +145,7 @@ int track_single(CLGLOBAL value_t *data,
          case DriftID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
                 Particle *p = &particles[i_part];
-                if (p->state > 0 ) {
+                if (p->state >= 0 ) {
                   Drift_track(p, (CLGLOBAL Drift*) elem);
                 }
               }
@@ -154,7 +154,7 @@ int track_single(CLGLOBAL value_t *data,
          case MultipoleID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
                 Particle *p = &particles[i_part];
-                if (p->state > 0 ) {
+                if (p->state >= 0 ) {
                   Multipole_track(p, (CLGLOBAL Multipole*) elem);
                 }
               }
@@ -163,7 +163,7 @@ int track_single(CLGLOBAL value_t *data,
          case CavityID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
                 Particle *p = &particles[i_part];
-                if (p->state > 0 ) {
+                if (p->state >= 0 ) {
                   Cavity_track(p, (CLGLOBAL Cavity*) elem);
                 }
               }
@@ -172,7 +172,7 @@ int track_single(CLGLOBAL value_t *data,
          case AlignID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
                 Particle *p = &particles[i_part];
-                if (p->state > 0 ) {
+                if (p->state >= 0 ) {
                   Align_track(p, (CLGLOBAL Align*) elem);
                 }
               }
@@ -183,7 +183,7 @@ int track_single(CLGLOBAL value_t *data,
          case DriftExactID:
               for (uint64_t i_part=0; i_part < npart; i_part++) {
                 Particle *p = &particles[i_part];
-                if (p->state > 0 ) {
+                if (p->state >= 0 ) {
                   DriftExact_track(p, (CLGLOBAL DriftExact*) elem);
                 }
               }
@@ -250,8 +250,8 @@ int Block_track(value_t *data, Beam* restrict beam,
                 uint64_t elembyelemid, uint64_t turnbyturnid){
    uint64_t nelem    = Block_get_nelen(data, blockid);
    uint64_t *elemids = Block_get_elemids(data, blockid);
-   uint64_t npart=beam->npart;
-   //uint64_t elembyelemoff=0; XXX
+   uint64_t npart = beam->npart;
+   uint64_t elembyelemoff=0; 
    uint64_t turnbyturnoff=0;
    // for each revolution around accelerator ...
    for (int i_turn=0; i_turn< nturn; i_turn++) {
@@ -274,7 +274,7 @@ int Block_track(value_t *data, Beam* restrict beam,
 //            printf("%lu \n",turnbyturnoff);
           }*/
           track_single(data, beam->particles, elemid, npart,
-              elembyelemid, turnbyturnoff);
+              elembyelemoff, turnbyturnoff);
        }
      for (uint64_t i_part=0; i_part < npart; i_part++){
        if (beam->particles->state[i_part] >= 0) beam->particles->turn[i_part]++;
@@ -312,7 +312,7 @@ int Block_track(value_t *data, Beam *restrict beam,
 //            printf("%lu \n",turnbyturnoff);
           }
           track_single(data, beam->particles, elemid, npart,
-              elembyelemid, turnbyturnoff);
+              elembyelemoff, turnbyturnoff);
        }
      for (uint64_t i_part=0; i_part < npart; i_part++){
        if (beam->particles[i_part].state >= 0) beam->particles[i_part].turn++;
