@@ -41,20 +41,22 @@ class typeid(object):
 
 
 blocklibpath = os.path.join(modulepath, 'block.so')
+blockveclibpath = os.path.join(modulepath, 'block_soa.so')
 blocklib = ctypes.CDLL(blocklibpath)
-# blocklib.Block_track.argtypes = [ctypes.c_void_p,  # *data
-#                                   ctypes.c_void_p,  # *particles
-#                                   ctypes.c_uint64,  # blockid
-#                                   ctypes.c_uint64,  # nturn
-#                                   ctypes.c_uint64,  # elembyelemid
-#                                   ctypes.c_uint64]  # turnbyturnid
-
+blockveclib = ctypes.CDLL(blockveclibpath)
 blocklib.Block_track.argtypes = [ctypes.c_void_p,  # *data
-                                 ctypes.POINTER(cBeam_SoA_ctypes),  # *beam
+                                 ctypes.c_void_p,  # *particles
                                  ctypes.c_uint64,  # blockid
                                  ctypes.c_uint64,  # nturn
                                  ctypes.c_uint64,  # elembyelemid
                                  ctypes.c_uint64]  # turnbyturnid
+
+blockveclib.Block_track.argtypes = [ctypes.c_void_p,  # *data
+                                    ctypes.POINTER(cBeam_SoA_ctypes),  # *beam
+                                    ctypes.c_uint64,  # blockid
+                                    ctypes.c_uint64,  # nturn
+                                    ctypes.c_uint64,  # elembyelemid
+                                    ctypes.c_uint64]  # turnbyturnid
 
 
 class ElemByElem(object):
@@ -206,7 +208,7 @@ class cBlock(object):
         self._add_float_array(np.zeros(size))
         return TurnByTurn(self, offset, size, nturn, beam.npart)
 
-    def track(self, beam, nturn=1, elembyelem=False, turnbyturn=False):
+    def track(self, beam, nturn=1, vec=False, elembyelem=False, turnbyturn=False):
         elembyelemid = 0
         turnbyturnid = 0
         if elembyelem:
@@ -215,10 +217,15 @@ class cBlock(object):
         if turnbyturn:
             _turnbyturn = self._set_turnbyturn(beam, nturn)
             turnbyturnid = _turnbyturn.offset
-        #print self.blockid,nturn,elembyelemid,turnbyturnid,self.size
-        blocklib.Block_track(self.data.ctypes.data, beam.ctypes(),
-                             self.blockid, nturn,
-                             elembyelemid, turnbyturnid)
+        # print self.blockid,nturn,elembyelemid,turnbyturnid,self.size
+        if vec:
+            blockveclib.Block_track(self.data.ctypes.data, beam.ctypes(),
+                                    self.blockid, nturn,
+                                    elembyelemid, turnbyturnid)
+        else:
+            blocklib.Block_track(self.data.ctypes.data, beam.ctypes(),
+                                 self.blockid, nturn,
+                                 elembyelemid, turnbyturnid)
         if elembyelem:
             self.elembyelem = _elembyelem.get_beam()
         if turnbyturn:
