@@ -14,21 +14,23 @@
 #ifndef _PARTICLE_
 #define _PARTICLE_
 
+#include <stdint.h>
+
 
 typedef struct Particles {
   // reference quantities
-  double *m0; // eV
-  double *q0; // C
-  double *q; // C
-  double *beta0;
-  double *gamma0;
-  double *p0c; //eV  
+  double m0; // eV
+  double q0; // C
+  double q; // C
+  double beta0;
+  double gamma0;
+  double p0c; //eV  
   
   //coordinate arrays
-  int *partid;
-  int *elemid;
-  int *turn;
-  int *state; //negativeparticle lost
+  uint64_t *partid;
+  uint64_t *elemid;
+  uint64_t *turn;
+  uint64_t *state; //negativeparticle lost
   double *s;
   double *x;
   double *px; // Px/P0

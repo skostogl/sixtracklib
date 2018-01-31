@@ -35,8 +35,8 @@ static inline int Drift_track(Particles* p, uint64_t ip,
   double xp, yp;
   xp = p->px[ip] * p->rpp[ip];
   yp = p->py[ip] * p->rpp[ip];
-  p->x += xp[ip] * length;
-  p->y += yp[ip] * length;
+  p->x[ip] += xp * length;
+  p->y[ip] += yp * length;
   p->sigma[ip] += length * (1 - p->rvv[ip]*( 1 + (xp*xp+yp*yp)/2 ) );
   p->s[ip]+=length;
 //  _DP("Drift_track: length=%g\n",length);
@@ -48,7 +48,7 @@ static inline int DriftExact_track(Particles* p, uint64_t ip,
                                     double length){
   double lpzi, lbzi, px, py, opd;
   opd=1+p->delta[ip];
-  px=p->px; py=p->py[ip];
+  px=p->px[ip]; py=p->py[ip];
   lpzi= length/sqrt(opd*opd-px*px-py*py);
   lbzi=(p->beta0*p->beta0*p->psigma[ip]+1)*lpzi;
   p->x[ip] += px*lpzi ;
