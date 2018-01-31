@@ -18,19 +18,26 @@
 
 #include "particle.h"
 
+#ifdef VECTOR
+
+typedef struct Beam {
+  uint64_t npart;
+  Particles* particles;
+} Beam;
+
+#else
 
 typedef struct Beam {
   uint64_t npart;
   Particle* particles;
 } Beam;
 
+#endif
+
 #ifndef _GPUCODE
-#include <stdlib.h>
 
 Beam *Beam_new(uint64_t npart);
 
 #endif
 
 #endif
-
-

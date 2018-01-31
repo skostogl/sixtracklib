@@ -10,3 +10,5 @@
 *egg-info
 track.obs*.p*
 .cache
+bench_*.txt
+*.optrpt
