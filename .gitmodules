@@ -1,0 +1,4 @@
+[submodule "postprocessing/NAFF_cpp"]
+    path = postprocessing/NAFF_cpp
+    url = git@github.com:skostogl/NAFF_cpp.git
+    branch = FMA
